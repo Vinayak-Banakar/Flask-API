@@ -19,6 +19,7 @@ pipeline {
             }
         }
 
+        // 🔍 SIMPLE DEBUG (SAFE)
         stage('DEBUG CREDS') {
             steps {
                 withCredentials([usernamePassword(
@@ -26,14 +27,20 @@ pipeline {
                     usernameVariable: 'USER',
                     passwordVariable: 'PASS'
                 )]) {
-                    powershell """
-                    Write-Output "USER=\$env:USER"
-                    Write-Output "PASS LENGTH=\$($env:PASS.Length)"
-                    """
+                    powershell '''
+                    Write-Output "USER=$env:USER"
+                    if ($env:PASS) {
+                        Write-Output "PASS RECEIVED"
+                    } else {
+                        Write-Output "PASS NOT RECEIVED"
+                        exit 1
+                    }
+                    '''
                 }
             }
         }
 
+        // 🔐 FINAL LOGIN (ROBUST)
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(
@@ -41,10 +48,17 @@ pipeline {
                     usernameVariable: 'USER',
                     passwordVariable: 'PASS'
                 )]) {
-                    powershell """
-                    \$env:PASS | docker login -u \$env:USER --password-stdin
-                    if (\$LASTEXITCODE -ne 0) { exit 1 }
-                    """
+                    powershell '''
+                    $pass = $env:PASS
+                    echo $pass | docker login -u $env:USER --password-stdin
+
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Error "Docker login failed"
+                        exit 1
+                    } else {
+                        Write-Output "Docker login success"
+                    }
+                    '''
                 }
             }
         }
