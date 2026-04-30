@@ -26,11 +26,9 @@ pipeline {
                     usernameVariable: 'USER',
                     passwordVariable: 'PASS'
                 )]) {
-                    bat """
-                    echo %PASS% > pass.txt
-                    docker login -u %USER% --password-stdin < pass.txt
-                    IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
-                    del pass.txt
+                    powershell """
+                    $PASS | docker login -u $env:USER --password-stdin
+                    if ($LASTEXITCODE -ne 0) { exit 1 }
                     """
                 }
             }
