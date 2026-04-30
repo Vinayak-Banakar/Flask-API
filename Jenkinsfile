@@ -27,8 +27,8 @@ pipeline {
                     passwordVariable: 'PASS'
                 )]) {
                     powershell """
-                    $PASS | docker login -u $env:USER --password-stdin
-                    if ($LASTEXITCODE -ne 0) { exit 1 }
+                    \$PASS | docker login -u \$env:USER --password-stdin
+                    if (\$LASTEXITCODE -ne 0) { exit 1 }
                     """
                 }
             }
