@@ -19,6 +19,23 @@ pipeline {
             }
         }
 
+        // 🔍 DEBUG STAGE (VERY IMPORTANT)
+        stage('DEBUG CREDS') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    powershell """
+                    Write-Output "USER=$env:USER"
+                    Write-Output "PASS LENGTH=$($env:PASS.Length)"
+                    """
+                }
+            }
+        }
+
+        // 🔐 LOGIN STAGE (FINAL FIX)
         stage('Docker Login') {
             steps {
                 withCredentials([usernamePassword(
@@ -27,8 +44,8 @@ pipeline {
                     passwordVariable: 'PASS'
                 )]) {
                     powershell """
-                    \$PASS | docker login -u \$env:USER --password-stdin
-                    if (\$LASTEXITCODE -ne 0) { exit 1 }
+                    $env:PASS | docker login -u $env:USER --password-stdin
+                    if ($LASTEXITCODE -ne 0) { exit 1 }
                     """
                 }
             }
