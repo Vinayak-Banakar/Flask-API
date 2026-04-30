@@ -29,6 +29,7 @@ pipeline {
                     bat """
                     echo %PASS% > pass.txt
                     docker login -u %USER% --password-stdin < pass.txt
+                    IF %ERRORLEVEL% NEQ 0 EXIT /B %ERRORLEVEL%
                     del pass.txt
                     """
                 }
