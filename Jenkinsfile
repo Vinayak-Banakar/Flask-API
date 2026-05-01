@@ -21,10 +21,18 @@ pipeline {
 
         stage('Push Image') {
             steps {
-                bat "docker push %IMAGE_NAME%:%BUILD_NUMBER%"
-                bat "docker push %IMAGE_NAME%:latest"
-            }
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+        )]) {
+            bat '''
+            echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
+            docker push vinayak0910/devops-app:22
+            '''
         }
+    }
+}
 
         stage('Deploy') {
             steps {
